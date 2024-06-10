@@ -1,0 +1,11 @@
+# Python
+*.pyc
+__pycache__/
+venv/
+*.env
+
+# VS Code
+.vscode/
+
+# Project
+output/
