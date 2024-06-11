@@ -1,3 +1,5 @@
+import os
+
 import src.config as cfg
 from src.address import form_phys_addr
 from src.exceptions import InvalidMemoryAddressError, PageNotExistsInRAMError, SegmentNotExistsInDescriptorTableError, PageNotExistsInROMError
@@ -32,6 +34,10 @@ def analyze(input_file, output_dir):
         data = f.read()
         data = clean_data(data)
         
+    # check if folder exists and create it if not
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
     # write cleaned data to program_cleaned.txt
     output_file = CLEANED_FILE
     with open(output_file, "w") as f:
