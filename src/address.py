@@ -75,7 +75,7 @@ def form_phys_addr(virtual_addr: str) -> str:
         if segment_pages_table[page_number][1] == '0':
             raise PageNotExistsInRAMError(virtual_addr)
     except IndexError:
-        raise PageNotExistsInRAMError(virtual_addr)
+        raise PageNotExistsInROMError(virtual_addr)
     
     frame_number = int(segment_pages_table[page_number][2], 2)
     

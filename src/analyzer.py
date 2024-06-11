@@ -1,5 +1,6 @@
 import src.config as cfg
 from src.address import form_phys_addr
+from src.exceptions import InvalidMemoryAddressError, PageNotExistsInRAMError, SegmentNotExistsInDescriptorTableError, PageNotExistsInROMError
 
 def form_addr(tokens: list[str]) -> str:
     virtual_addr = ''
@@ -13,10 +14,10 @@ def clean_data(data: str) -> str:
 def get_tokens(data: str) -> list[str]:
     return [data[i:i+2] for i in range(0, len(data), 2)]
 
-def print_row(tokens: list[str], mnemonic: str, operands: int, error_code:int = None, file=None):
+def print_row(tokens: list[str], mnemonic: str, operands: int, error: str = None, file=None):
     print(' '.join(tokens), file=file)
-    if error_code:
-        print(f'Error: {cfg.ERRORS[error_code]}', file=file)
+    if error is not None:
+        print(f'{error}', file=file)
     print(f'{mnemonic} {", ".join(operands)}', file=file); print(file=file)
 
 def analyze(input_file, output_dir):
@@ -47,8 +48,9 @@ def analyze(input_file, output_dir):
         command = []
         current_token = ''
         arguments = []
+        reverse_flag = False
         while i < len(tokens):
-            error_code = None
+            error = None
             current_token = tokens[i]
             
             if current_token in cfg.OPCODES:
@@ -57,9 +59,8 @@ def analyze(input_file, output_dir):
                 # i: index of the first operand
                 command = [opcode]
                 
-                reverse_flag = False
                 if opcode in cfg.REVERSE_OPCODE:
-                    reverse_flag = bool(tokens[i][0])
+                    reverse_flag = tokens[i][0] == '0'
                     
                 operands = cfg.OPCODES[opcode]['operands']
 
@@ -73,7 +74,7 @@ def analyze(input_file, output_dir):
                         try:
                             arguments = [form_addr(tokens[i:i+operand_size])]
                         except Exception as e:
-                            error_code = 5
+                            error = str(e)
                             arguments = [f'[0x{"".join(tokens[i:i+operand_size])}]']
                         command.extend(tokens[i:i+operand_size])
                         
@@ -83,24 +84,28 @@ def analyze(input_file, output_dir):
                     operands_sizes = [cfg.OPERAND_SIZES[operand] for operand in operands]
                     
                     if operands[0] == 'REG' and operands[1] == 'REG':
-                        arguments = [f'R{int(tokens[i][0], 16)}', f'R{int(tokens[i][1], 16)}']
+                        arguments = [f'R{int(tokens[i][1], 16)}',
+                                     f'R{int(tokens[i][0], 16)}']
                         command.append(tokens[i])
                         i += 1  # REG REG
                         
                     elif operands[0] == 'REG' and operands[1] == 'ADDR':
                         command.append(tokens[i])
                         try:
-                            arguments = [f'R{int(tokens[i][0], 16)}', form_addr(tokens[i+1:i+operands_sizes[1]+1])]
+                            arguments = [form_addr(tokens[i+1:i+operands_sizes[1]+1]),
+                                         f'R{int(tokens[i][1], 16)}']
                         except Exception as e:
-                            error_code = 5
-                            arguments = [f'R{int(tokens[i][0], 16)}', f'[0x{"".join(tokens[i+1:i+operands_sizes[1]+1])}]']
+                            error = str(e)
+                            arguments = [f'[0x{"".join(tokens[i+1:i+operands_sizes[1]+1])}]',
+                                         f'R{int(tokens[i][1], 16)}']
                         command.extend(tokens[i+1:i+operands_sizes[1]+1])
                         
                         i += 1                  # REG
                         i += operands_sizes[1]  # ADDR
                         
                     elif operands[0] == 'REG' and operands[1] == 'LIT16':
-                        arguments = [f'R{int(tokens[i][1], 16)}', f'{int(tokens[i+1], 16)}']
+                        arguments = [f'R{int(tokens[i][1], 16)}',
+                                     f'{int(tokens[i+1], 16)}']
                         command.append(tokens[i])
                         command.append(tokens[i+1])
                         i += 1 # REG
@@ -108,11 +113,12 @@ def analyze(input_file, output_dir):
                         
                     if reverse_flag:
                         arguments = arguments[::-1]
+                        reverse_flag = False
 
                 print_row(command, 
                           cfg.OPCODES[opcode]['mnemonic'], 
                           arguments, 
-                          error_code=error_code, 
+                          error=error, 
                           file=f)
                     
 

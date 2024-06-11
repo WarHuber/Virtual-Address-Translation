@@ -78,7 +78,7 @@ def test_page_not_in_ram():
 
 def test_invalid_page_number():
     # Tests accessing a page number that does not exist in the segment's page table
-    with pytest.raises(PageNotExistsInRAMError):
+    with pytest.raises(PageNotExistsInROMError):
         form_phys_addr('001FF000')  # Page number 511 in segment 1, which only has 3 pages
 
 def test_maximum_page_offset():
