@@ -6,7 +6,6 @@ INPUT_FILE = INPUT_DIR + "program.txt"
 
 OUTPUT_FILE = OUTPUT_DIR + "result.txt"
 
-PAGES_TABLE_FILE = DATA_DIR + "pages.csv"
 SEGMENTS_TABLE_FILE = DATA_DIR + "segments.csv"
 
 OPERAND_SIZES = {
@@ -32,14 +31,6 @@ REVERSE_OPCODE = [
     '02',
     '1C'
 ]
-
-ERRORS = {
-    1: 'Invalid opcode',
-    2: 'Invalid operand',
-    3: 'Invalid addressing mode',
-    4: 'Invalid register',
-    5: 'Invalid memory location',
-}
 
 PAGE_SIZE = 2*2**10
 DESCRIPTOR_TABLE_SIZE = 2048
