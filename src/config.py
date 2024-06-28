@@ -12,7 +12,7 @@ OPERAND_SIZES = {
     'REG': 1,
     'ADDR': 4,
     'SHIFT': 1,
-    'LIT16': 4
+    'LIT16': 2
 }
 
 OPCODES = {
